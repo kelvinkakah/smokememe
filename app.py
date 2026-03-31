@@ -99,7 +99,7 @@ def create_placeholder(label, c1, c2, size=(600,600)):
     draw.text(((size[0]-tw)//2, (size[1]-th)//2), label.upper(), font=font, fill=(255,255,255))
     return img
 
-def get_template_image(tid):
+def get_template_image(template_id):
     t = next((t for t in TEMPLATES if t["id"]==tid), None)
     if not t: return create_placeholder("???", "#111","#333")
     path = TEMPLATE_FOLDER / t["file"]
@@ -144,13 +144,13 @@ def api_generate():
     fsize = min(max(int(request.form.get("font_size",48)),16),120)
     color = request.form.get("text_color","#39ff14")
     outline = request.form.get("outline","true").lower()=="true"
-    tid = request.form.get("template_id","")
+    template_id = request.form.get("template_id","")
     file = request.files.get("image")
     try:
         if file and file.filename and allowed_file(file.filename):
             img = Image.open(io.BytesIO(file.read()))
         elif tid:
-            img = get_template_image(tid)
+            img = get_template_image(template_id)
         else:
             img = create_placeholder("SMOKEMEME","#0a0a0a","#1a1a2e")
         buf = generate_meme(img, top, bottom, fsize, color, outline)
@@ -180,8 +180,8 @@ def api_random_quote():
     return jsonify({"quote":q,"author":a})
 
 @app.route("/api/template-preview/<tid>")
-def api_template_preview(tid):
-    img = get_template_image(tid)
+def api_template_preview(template_id):
+    img = get_template_image(template_id)
     buf = io.BytesIO()
     img.convert("RGB").save(buf, format="PNG")
     buf.seek(0)
