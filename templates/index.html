@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}SmokeMeme – Crypto Meme Generator for Web3 Degens{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO ── -->
+<section class="relative overflow-hidden min-h-[88vh] flex flex-col items-center justify-center text-center px-6 py-24">
+
+  <!-- Background orbs -->
+  <div class="pointer-events-none absolute inset-0 overflow-hidden">
+    <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-neon/5 blur-3xl animate-pulse"></div>
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-plasma/5 blur-3xl" style="animation: pulse 4s 1s ease-in-out infinite;"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-void/80 border border-neon/5 blur-sm"></div>
+  </div>
+
+  <div class="relative z-10 max-w-4xl mx-auto">
+
+    <!-- Badge -->
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-neon/30 bg-neon/5 text-neon text-xs tracking-[0.2em] uppercase mb-8 fade-up">
+      <span class="w-2 h-2 rounded-full bg-neon animate-pulse"></span>
+      Web3 Meme Engine · Online
+    </div>
+
+    <!-- Headline -->
+    <h1 class="font-display font-black text-5xl sm:text-7xl lg:text-8xl leading-none mb-6 fade-up-2">
+      <span class="neon-text glitch">SMOKE</span><span class="text-white">MEME</span>
+    </h1>
+
+    <p class="text-gray-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 fade-up-3 leading-relaxed">
+      The most <span class="text-neon">degen</span> crypto meme generator on the internet.
+      Upload an image, pick a template, add your alpha, and let the market know.
+    </p>
+
+    <!-- CTAs -->
+    <div class="flex flex-wrap gap-4 justify-center fade-up-3">
+      <a href="{{ url_for('generator') }}" class="btn-neon px-8 py-4 text-sm rounded-lg font-display">
+        🔥 Generate Meme
+      </a>
+      <a href="{{ url_for('quotes') }}" class="btn-plasma px-8 py-4 text-sm rounded-lg font-display">
+        💬 Crypto Quotes
+      </a>
+    </div>
+
+    <!-- Stats row -->
+    <div class="mt-16 grid grid-cols-3 gap-4 max-w-md mx-auto text-center fade-up-3">
+      <div class="glass-card rounded-xl p-4">
+        <div class="text-2xl font-display font-black neon-text">∞</div>
+        <div class="text-xs text-gray-500 mt-1 uppercase tracking-widest">Memes</div>
+      </div>
+      <div class="glass-card rounded-xl p-4">
+        <div class="text-2xl font-display font-black plasma-text">6</div>
+        <div class="text-xs text-gray-500 mt-1 uppercase tracking-widest">Templates</div>
+      </div>
+      <div class="glass-card rounded-xl p-4">
+        <div class="text-2xl font-display font-black blaze-text">24+</div>
+        <div class="text-xs text-gray-500 mt-1 uppercase tracking-widest">Quotes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-neon/40 text-xs tracking-widest">
+    ↓ SCROLL
+  </div>
+</section>
+
+<!-- ── QUOTE OF THE DAY ── -->
+<section class="px-6 py-16 max-w-4xl mx-auto">
+  <div class="glass-card rounded-2xl p-8 sm:p-12 text-center relative overflow-hidden">
+    <!-- Corner decorations -->
+    <div class="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-neon/40 rounded-tl-2xl"></div>
+    <div class="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-neon/40 rounded-br-2xl"></div>
+
+    <p class="text-xs uppercase tracking-[0.3em] text-neon/60 mb-6">// Quote of the Day</p>
+    <blockquote id="hero-quote" class="text-2xl sm:text-3xl font-display font-bold text-white mb-4 leading-snug">
+      "{{ quote }}"
+    </blockquote>
+    <p id="hero-author" class="text-neon/60 text-sm tracking-widest uppercase">— {{ author }}</p>
+
+    <div class="flex flex-wrap gap-3 justify-center mt-8">
+      <button onclick="newQuote()" class="btn-neon px-5 py-2.5 text-xs rounded-lg">
+        🎲 New Quote
+      </button>
+      <a id="quote-meme-btn" href="{{ url_for('generator') }}" class="btn-plasma px-5 py-2.5 text-xs rounded-lg">
+        🖼 Turn Into Meme
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── TEMPLATES GRID ── -->
+<section class="px-6 py-16 max-w-7xl mx-auto">
+  <div class="text-center mb-12">
+    <p class="text-xs uppercase tracking-[0.3em] text-neon/60 mb-3">// Templates</p>
+    <h2 class="font-display font-black text-3xl sm:text-4xl text-white">Pick Your <span class="neon-text">Weapon</span></h2>
+    <p class="text-gray-500 mt-3 text-sm">6 battle-tested crypto meme templates</p>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    {% for tmpl in templates %}
+    <a href="{{ url_for('generator', template=tmpl.id) }}"
+       class="template-card glass-card rounded-xl overflow-hidden group cursor-pointer block">
+      <!-- Template preview -->
+      <div class="aspect-square bg-void/60 flex items-center justify-center relative overflow-hidden">
+        <img src="{{ url_for('api_template_preview', template_id=tmpl.id) }}"
+             alt="{{ tmpl.name }}"
+             class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+             loading="lazy" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+        <div class="absolute top-2 right-2 text-xl">{{ tmpl.emoji }}</div>
+      </div>
+      <div class="p-3">
+        <p class="text-xs font-display font-bold text-white truncate">{{ tmpl.name }}</p>
+        <p class="text-xs text-gray-600 mt-0.5 truncate">{{ tmpl.description }}</p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="px-6 py-16 max-w-5xl mx-auto">
+  <div class="text-center mb-12">
+    <p class="text-xs uppercase tracking-[0.3em] text-neon/60 mb-3">// Protocol</p>
+    <h2 class="font-display font-black text-3xl sm:text-4xl text-white">How It <span class="plasma-text">Works</span></h2>
+  </div>
+
+  <div class="grid sm:grid-cols-3 gap-6">
+    {% for step in [
+      ('01', '🖼', 'Choose Image', 'Upload your own or pick from our degen-approved crypto templates.'),
+      ('02', '✍️', 'Add Text', 'Top & bottom text. Neon or white. Outline it. Make them feel it.'),
+      ('03', '🚀', 'Meme & Share', 'Preview instantly, download your PNG, and blast it to CT.'),
+    ] %}
+    <div class="glass-card rounded-xl p-6 text-center relative overflow-hidden group">
+      <div class="absolute top-3 right-4 font-display font-black text-6xl text-white/3 select-none">{{ step[0] }}</div>
+      <div class="text-4xl mb-4">{{ step[1] }}</div>
+      <h3 class="font-display font-bold text-white mb-2 text-lg">{{ step[2] }}</h3>
+      <p class="text-gray-500 text-sm leading-relaxed">{{ step[3] }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function newQuote() {
+  const res = await fetch('/api/random-quote');
+  const data = await res.json();
+  document.getElementById('hero-quote').textContent = `"${data.quote}"`;
+  document.getElementById('hero-author').textContent = `— ${data.author}`;
+}
+</script>
+{% endblock %}

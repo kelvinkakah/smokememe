@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}SmokeMeme – Crypto Meme Generator{% endblock %}</title>
+  <meta name="description" content="Generate degen crypto memes in seconds. Built for web3 degens, by degens." />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            neon:    { DEFAULT: '#39ff14', dark: '#22cc00' },
+            plasma:  { DEFAULT: '#00d4ff', dark: '#009bcc' },
+            blaze:   { DEFAULT: '#ff6b00', dark: '#cc5500' },
+            void:    { DEFAULT: '#050510', mid: '#0a0a1e', surface: '#0f0f28' },
+            glass:   'rgba(255,255,255,0.04)',
+          },
+          fontFamily: {
+            display: ['"Orbitron"', 'monospace'],
+            body:    ['"Share Tech Mono"', 'monospace'],
+          },
+          boxShadow: {
+            neon:   '0 0 20px rgba(57,255,20,0.4), 0 0 60px rgba(57,255,20,0.1)',
+            plasma: '0 0 20px rgba(0,212,255,0.4), 0 0 60px rgba(0,212,255,0.1)',
+            blaze:  '0 0 20px rgba(255,107,0,0.4)',
+          },
+          animation: {
+            'flicker': 'flicker 3s infinite',
+            'float':   'float 6s ease-in-out infinite',
+            'scanline':'scanline 8s linear infinite',
+            'pulse-neon': 'pulseNeon 2s ease-in-out infinite',
+          },
+          keyframes: {
+            flicker: {
+              '0%,100%': { opacity: '1' },
+              '50%': { opacity: '0.85' },
+              '75%': { opacity: '0.95' },
+            },
+            float: {
+              '0%,100%': { transform: 'translateY(0)' },
+              '50%':     { transform: 'translateY(-12px)' },
+            },
+            scanline: {
+              '0%':   { transform: 'translateY(-100%)' },
+              '100%': { transform: 'translateY(100vh)' },
+            },
+            pulseNeon: {
+              '0%,100%': { boxShadow: '0 0 10px rgba(57,255,20,0.3)' },
+              '50%':     { boxShadow: '0 0 30px rgba(57,255,20,0.8), 0 0 60px rgba(57,255,20,0.3)' },
+            },
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Global resets & body ── */
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      background-color: #050510;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(57,255,20,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(0,212,255,0.05) 0%, transparent 60%);
+      background-attachment: fixed;
+      color: #e0e0ff;
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+    }
+
+    /* ── CRT scanline overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.06) 2px,
+        rgba(0,0,0,0.06) 4px
+      );
+      pointer-events: none;
+      z-index: 9998;
+    }
+
+    /* ── Neon text ── */
+    .neon-text   { color: #39ff14; text-shadow: 0 0 10px rgba(57,255,20,0.8), 0 0 30px rgba(57,255,20,0.4); }
+    .plasma-text { color: #00d4ff; text-shadow: 0 0 10px rgba(0,212,255,0.8), 0 0 30px rgba(0,212,255,0.4); }
+    .blaze-text  { color: #ff6b00; text-shadow: 0 0 10px rgba(255,107,0,0.8); }
+
+    /* ── Glass card ── */
+    .glass-card {
+      background: rgba(15,15,40,0.7);
+      border: 1px solid rgba(57,255,20,0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .glass-card:hover {
+      border-color: rgba(57,255,20,0.4);
+      box-shadow: 0 0 30px rgba(57,255,20,0.1);
+    }
+
+    /* ── Neon button ── */
+    .btn-neon {
+      background: transparent;
+      border: 1px solid #39ff14;
+      color: #39ff14;
+      font-family: 'Orbitron', monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-neon::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: #39ff14;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.25s ease;
+      z-index: -1;
+    }
+    .btn-neon:hover::before { transform: scaleX(1); }
+    .btn-neon:hover { color: #050510; box-shadow: 0 0 20px rgba(57,255,20,0.6); }
+
+    .btn-plasma {
+      background: transparent;
+      border: 1px solid #00d4ff;
+      color: #00d4ff;
+      font-family: 'Orbitron', monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .btn-plasma:hover { background: #00d4ff; color: #050510; box-shadow: 0 0 20px rgba(0,212,255,0.6); }
+
+    .btn-blaze {
+      background: transparent;
+      border: 1px solid #ff6b00;
+      color: #ff6b00;
+      font-family: 'Orbitron', monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .btn-blaze:hover { background: #ff6b00; color: #050510; box-shadow: 0 0 20px rgba(255,107,0,0.6); }
+
+    /* ── Input styling ── */
+    .neon-input {
+      background: rgba(5,5,16,0.8);
+      border: 1px solid rgba(57,255,20,0.3);
+      color: #e0e0ff;
+      font-family: 'Share Tech Mono', monospace;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .neon-input:focus {
+      outline: none;
+      border-color: #39ff14;
+      box-shadow: 0 0 12px rgba(57,255,20,0.25);
+    }
+
+    /* ── Nav active ── */
+    .nav-link { transition: color 0.2s; }
+    .nav-link:hover, .nav-link.active { color: #39ff14; }
+    .nav-link.active::after {
+      content: '';
+      display: block;
+      height: 2px;
+      background: #39ff14;
+      box-shadow: 0 0 8px #39ff14;
+    }
+
+    /* ── Ticker tape ── */
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    .ticker-inner { animation: ticker 20s linear infinite; white-space: nowrap; }
+
+    /* ── Glitch effect ── */
+    @keyframes glitch {
+      0%,100% { text-shadow: 0 0 10px rgba(57,255,20,0.8), 0 0 30px rgba(57,255,20,0.4); }
+      20%      { text-shadow: -2px 0 #ff0040, 2px 0 #00d4ff; }
+      40%      { text-shadow: 2px 0 #ff0040, -2px 0 #00d4ff; }
+      60%      { text-shadow: 0 0 10px rgba(57,255,20,0.8), 0 0 30px rgba(57,255,20,0.4); }
+    }
+    .glitch { animation: glitch 4s ease-in-out infinite; }
+
+    /* ── Page fade-in ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.6s ease forwards; }
+    .fade-up-2 { animation: fadeUp 0.6s 0.15s ease both; }
+    .fade-up-3 { animation: fadeUp 0.6s 0.30s ease both; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #050510; }
+    ::-webkit-scrollbar-thumb { background: rgba(57,255,20,0.4); border-radius: 3px; }
+
+    /* ── Template card hover ── */
+    .template-card { transition: transform 0.25s, box-shadow 0.25s; }
+    .template-card:hover { transform: translateY(-4px); box-shadow: 0 0 30px rgba(57,255,20,0.2); }
+    .template-card.selected { border-color: #39ff14 !important; box-shadow: 0 0 20px rgba(57,255,20,0.4); }
+  </style>
+</head>
+
+<body class="font-body">
+
+  <!-- ── Navbar ── -->
+  <nav class="sticky top-0 z-50 border-b border-neon/10 bg-void/80 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+
+      <!-- Logo -->
+      <a href="{{ url_for('index') }}" class="flex items-center gap-2 group">
+        <span class="text-2xl">🔥</span>
+        <span class="font-display font-black text-lg tracking-widest neon-text glitch">SMOKEMEME</span>
+      </a>
+
+      <!-- Desktop nav -->
+      <div class="hidden md:flex items-center gap-8 text-sm tracking-widest uppercase">
+        <a href="{{ url_for('index') }}"     class="nav-link {% if request.endpoint == 'index' %}active neon-text{% else %}text-gray-400{% endif %}">Home</a>
+        <a href="{{ url_for('generator') }}" class="nav-link {% if request.endpoint == 'generator' %}active neon-text{% else %}text-gray-400{% endif %}">Generate</a>
+        <a href="{{ url_for('quotes') }}"    class="nav-link {% if request.endpoint == 'quotes' %}active neon-text{% else %}text-gray-400{% endif %}">Quotes</a>
+        <a href="{{ url_for('gallery') }}"   class="nav-link {% if request.endpoint == 'gallery' %}active neon-text{% else %}text-gray-400{% endif %}">Gallery</a>
+      </div>
+
+      <!-- CTA -->
+      <a href="{{ url_for('generator') }}" class="btn-neon px-4 py-2 text-xs rounded hidden sm:block">
+        Create Meme
+      </a>
+
+      <!-- Mobile hamburger -->
+      <button id="menu-btn" class="md:hidden text-gray-400 hover:text-neon focus:outline-none" aria-label="Menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-void/95 border-t border-neon/10 px-6 py-4 space-y-3">
+      <a href="{{ url_for('index') }}"     class="block text-sm tracking-widest uppercase {% if request.endpoint == 'index' %}neon-text{% else %}text-gray-400{% endif %}">Home</a>
+      <a href="{{ url_for('generator') }}" class="block text-sm tracking-widest uppercase {% if request.endpoint == 'generator' %}neon-text{% else %}text-gray-400{% endif %}">Generate</a>
+      <a href="{{ url_for('quotes') }}"    class="block text-sm tracking-widest uppercase {% if request.endpoint == 'quotes' %}neon-text{% else %}text-gray-400{% endif %}">Quotes</a>
+      <a href="{{ url_for('gallery') }}"   class="block text-sm tracking-widest uppercase {% if request.endpoint == 'gallery' %}neon-text{% else %}text-gray-400{% endif %}">Gallery</a>
+    </div>
+  </nav>
+
+  <!-- ── Ticker tape ── -->
+  <div class="overflow-hidden border-b border-neon/10 bg-void/60 py-1.5 text-xs text-neon/60 tracking-widest">
+    <div class="ticker-inner inline-block">
+      {% set tickers = ['BTC $∞', '&nbsp;·&nbsp;', 'ETH WAGMI', '&nbsp;·&nbsp;', 'PEPE 🐸', '&nbsp;·&nbsp;', 'DOGE 🚀', '&nbsp;·&nbsp;', 'SOL 🌙', '&nbsp;·&nbsp;', 'NGMI → WAGMI', '&nbsp;·&nbsp;', 'DIAMOND HANDS 💎', '&nbsp;·&nbsp;', '1 BTC = 1 BTC', '&nbsp;·&nbsp;', 'APE IN 🦍', '&nbsp;·&nbsp;', 'LASER EYES 👀', '&nbsp;·&nbsp;', 'WEN MOON?', '&nbsp;·&nbsp;'] %}
+      {% for item in tickers %}{{ item | safe }}{% endfor %}
+      {% for item in tickers %}{{ item | safe }}{% endfor %}
+    </div>
+  </div>
+
+  <!-- ── Main content ── -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer class="border-t border-neon/10 mt-24 py-10 text-center text-xs text-gray-600 tracking-widest">
+    <p class="font-display neon-text mb-2 text-sm">SMOKEMEME</p>
+    <p>Built for degens · by degens &nbsp;·&nbsp; <span class="text-neon/40">Not financial advice.</span></p>
+    <p class="mt-3 text-gray-700">WAGMI 🤝 &nbsp;|&nbsp; Diamond Hands 💎 &nbsp;|&nbsp; NGMI → 🚀</p>
+  </footer>
+
+  <!-- Mobile menu toggle -->
+  <script>
+    document.getElementById('menu-btn').addEventListener('click', () => {
+      document.getElementById('mobile-menu').classList.toggle('hidden');
+    });
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

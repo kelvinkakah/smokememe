@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Gallery – SmokeMeme{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-12">
+
+  <!-- Header -->
+  <div class="text-center mb-14 fade-up">
+    <p class="text-xs uppercase tracking-[0.3em] text-neon/60 mb-3">// Session Gallery</p>
+    <h1 class="font-display font-black text-4xl sm:text-5xl text-white mb-4">
+      Your <span class="plasma-text">Memes</span>
+    </h1>
+    <p class="text-gray-500 text-sm max-w-md mx-auto">
+      Memes you generated this session. Create more and they'll appear here.
+    </p>
+  </div>
+
+  {% if memes %}
+  <!-- Meme masonry grid -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+    {% for meme in memes %}
+    <div class="glass-card rounded-xl overflow-hidden group relative cursor-pointer
+                hover:border-neon/40 hover:shadow-neon transition-all duration-300"
+         onclick="openLightbox('{{ meme.data }}', '{{ meme.top | default('') }}', '{{ meme.bottom | default('') }}')">
+
+      <!-- Meme image -->
+      <div class="aspect-square overflow-hidden bg-void/60">
+        <img src="data:image/png;base64,{{ meme.data }}"
+             alt="Meme"
+             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      </div>
+
+      <!-- Hover overlay -->
+      <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300
+                  flex items-center justify-center gap-3">
+        <span class="text-white text-sm font-display">👁 View</span>
+      </div>
+
+      <!-- Text labels if present -->
+      {% if meme.top or meme.bottom %}
+      <div class="p-3">
+        {% if meme.top %}
+        <p class="text-xs text-neon/70 truncate">↑ {{ meme.top }}</p>
+        {% endif %}
+        {% if meme.bottom %}
+        <p class="text-xs text-plasma/70 truncate">↓ {{ meme.bottom }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="text-center mt-10">
+    <a href="{{ url_for('generator') }}" class="btn-neon px-6 py-3 text-sm rounded-xl font-display inline-block">
+      🔥 Create More
+    </a>
+  </div>
+
+  {% else %}
+  <!-- Empty state -->
+  <div class="text-center py-32">
+    <div class="text-8xl mb-6 animate-float">🎭</div>
+    <h3 class="font-display font-bold text-white text-2xl mb-3">Gallery Empty, Degen</h3>
+    <p class="text-gray-600 text-sm mb-8 max-w-xs mx-auto">
+      Your generated memes will appear here during this session. Time to create some bangers.
+    </p>
+    <a href="{{ url_for('generator') }}" class="btn-neon px-8 py-4 text-sm rounded-xl font-display inline-block">
+      🔥 Forge Your First Meme
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── Lightbox ── -->
+<div id="lightbox" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/90 backdrop-blur-md"
+     onclick="closeLightbox()">
+  <div class="max-w-2xl max-h-[90vh] w-full mx-4 relative" onclick="event.stopPropagation()">
+    <img id="lightbox-img" src="" alt="Meme" class="w-full h-auto rounded-2xl shadow-2xl" />
+
+    <div id="lightbox-text" class="mt-3 text-center text-sm text-gray-400 font-display"></div>
+
+    <div class="flex gap-3 mt-4 justify-center">
+      <button onclick="downloadLightbox()" class="btn-neon px-5 py-2.5 text-xs rounded-lg font-display">
+        ⬇ Download
+      </button>
+      <button onclick="closeLightbox()" class="btn-plasma px-5 py-2.5 text-xs rounded-lg font-display">
+        ✕ Close
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let lightboxB64 = '';
+
+function openLightbox(b64, top, bottom) {
+  lightboxB64 = b64;
+  document.getElementById('lightbox-img').src = 'data:image/png;base64,' + b64;
+  const textParts = [];
+  if (top)    textParts.push('↑ ' + top);
+  if (bottom) textParts.push('↓ ' + bottom);
+  document.getElementById('lightbox-text').textContent = textParts.join('  ·  ');
+  document.getElementById('lightbox').classList.remove('hidden');
+  document.getElementById('lightbox').classList.add('flex');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.add('hidden');
+  document.getElementById('lightbox').classList.remove('flex');
+}
+
+async function downloadLightbox() {
+  if (!lightboxB64) return;
+  const res  = await fetch('/api/download', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: lightboxB64 }),
+  });
+  const blob = await res.blob();
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'smokememe.png'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLightbox();
+});
+</script>
+{% endblock %}

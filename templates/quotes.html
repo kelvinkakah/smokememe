@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Crypto Quotes – SmokeMeme{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-12">
+
+  <!-- Header -->
+  <div class="text-center mb-14 fade-up">
+    <p class="text-xs uppercase tracking-[0.3em] text-neon/60 mb-3">// Alpha Library</p>
+    <h1 class="font-display font-black text-4xl sm:text-5xl text-white mb-4">
+      Crypto <span class="neon-text">Quotes</span>
+    </h1>
+    <p class="text-gray-500 text-sm max-w-md mx-auto">
+      Wisdom from the blockchain. Each one a masterpiece. Each one meme-able.
+    </p>
+
+    <!-- Random quote button -->
+    <button onclick="randomQuoteMeme()"
+            class="btn-blaze mt-6 px-6 py-3 text-xs rounded-xl font-display inline-flex items-center gap-2">
+      🎲 Random Quote Meme
+    </button>
+  </div>
+
+  <!-- Quotes grid -->
+  <div class="grid sm:grid-cols-2 gap-5" id="quotes-grid">
+    {% for quote, author in quotes %}
+    <div class="quote-card glass-card rounded-xl p-6 relative overflow-hidden group transition-all duration-300 hover:border-neon/30">
+
+      <!-- Quote number -->
+      <span class="absolute top-4 right-5 font-display font-black text-3xl text-white/3 select-none">
+        {{ loop.index }}
+      </span>
+
+      <!-- Corner accent -->
+      <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-neon/0 via-neon/40 to-neon/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+      <div class="flex items-start gap-3 mb-4">
+        <span class="text-neon/40 text-2xl mt-0.5 flex-shrink-0">"</span>
+        <p class="text-white text-sm leading-relaxed font-display font-bold">{{ quote }}</p>
+      </div>
+
+      <p class="text-neon/50 text-xs tracking-widest uppercase pl-8">— {{ author }}</p>
+
+      <!-- Actions -->
+      <div class="flex gap-2 mt-4 pl-8">
+        <a href="{{ url_for('generator') }}?top={{ quote[:50] | urlencode }}"
+           class="btn-neon px-3 py-1.5 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1">
+          🖼 Meme It
+        </a>
+        <button onclick="copyQuote(this, `{{ quote | replace('`', "'") }}`)"
+                class="btn-plasma px-3 py-1.5 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1">
+          📋 Copy
+        </button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Bottom CTA -->
+  <div class="text-center mt-16 glass-card rounded-2xl p-10">
+    <div class="text-5xl mb-4 animate-float">💬</div>
+    <h3 class="font-display font-bold text-white text-2xl mb-3">Ready to Meme?</h3>
+    <p class="text-gray-500 text-sm mb-6">Take any of these quotes and forge them into a legendary meme.</p>
+    <a href="{{ url_for('generator') }}" class="btn-neon px-8 py-3 text-sm rounded-xl font-display inline-block">
+      🔥 Open Generator
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyQuote(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.innerHTML = '📋 Copy'; }, 2000);
+  });
+}
+
+async function randomQuoteMeme() {
+  const res  = await fetch('/api/random-quote');
+  const data = await res.json();
+  const encoded = encodeURIComponent(data.quote.substring(0, 80));
+  window.location.href = `/generator?top=${encoded}`;
+}
+</script>
+{% endblock %}
